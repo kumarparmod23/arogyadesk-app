@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Arogya Clinic Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1a6b3c;--gl:#2d9458;--gp:#e8f5ee;
+  --gold:#c8922a;--gol:#f5e6c8;
+  --blue:#1a4a8a;--blp:#e8eef8;
+  --red:#c0392b;--rdp:#fdecea;
+  --bg:#f2f4f2;--white:#fff;--text:#1a2e1e;
+  --tm:#4a6350;--tl:#7a9980;--bdr:#d4e5d9;
+  --sh:0 2px 12px rgba(26,107,60,.10);--r:14px;--rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOADER */
+.ldr{position:fixed;inset:0;background:rgba(26,107,60,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;}
+.ldr.off{display:none;}
+.spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SETUP SCREEN */
+.setup{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.setup.off{display:none;}
+.setup-box{background:var(--white);border-radius:var(--r);padding:28px 22px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+.setup-logo{text-align:center;margin-bottom:16px;}
+.setup-logo .icon{font-size:48px;}
+.setup-logo h2{font-family:'Playfair Display',serif;color:var(--green);font-size:22px;margin-top:6px;}
+.setup-steps{background:var(--gp);border-radius:var(--rs);padding:13px;margin:12px 0;font-size:12px;color:var(--tm);line-height:1.9;}
+.setup-steps b{color:var(--green);}
+
+/* LOGIN SCREEN */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0a2417,#1a6b3c,#0f4a2a);z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.login-screen.off{display:none;}
+.login-box{background:rgba(255,255,255,.97);border-radius:var(--r);padding:28px 24px;width:100%;max-width:380px;box-shadow:0 16px 60px rgba(0,0,0,.3);}
+.login-logo{text-align:center;margin-bottom:20px;}
+.login-logo .icon{font-size:44px;}
+.login-logo h2{font-family:'Playfair Display',serif;color:var(--green);font-size:20px;margin-top:6px;}
+.login-logo p{font-size:12px;color:var(--tl);margin-top:3px;}
+.role-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--bg);border-radius:var(--rs);padding:4px;}
+.role-tab{flex:1;padding:9px 6px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:transparent;color:var(--tm);transition:all .2s;text-align:center;}
+.role-tab .tab-icon{font-size:16px;display:block;margin-bottom:2px;}
+.role-tab.active{background:var(--white);color:var(--green);box-shadow:0 2px 8px rgba(0,0,0,.12);}
+.login-err{background:var(--rdp);color:var(--red);border-left:3px solid var(--red);padding:9px 12px;border-radius:var(--rs);font-size:13px;margin-bottom:10px;display:none;}
+
+/* PASSWORD INPUT */
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:42px !important;}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--tl);}
+
+/* HEADER */
+.hdr{background:var(--green);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.hdr-inner{display:flex;align-items:center;gap:9px;}
+.hdr h1{font-family:'Playfair Display',serif;font-size:16px;flex:1;line-height:1.2;}
+.hdr-sub{font-size:10px;opacity:.8;}
+.logo-icon{width:34px;height:34px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.hdr-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:5px 9px;border-radius:16px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,.28);}
+.role-chip{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(255,255,255,.22);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:3px;}
+.sync-dot.off{background:#f87171;}
+
+/* NAV */
+.nav{display:flex;background:var(--white);border-bottom:2px solid var(--bdr);overflow-x:auto;position:sticky;top:60px;z-index:99;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{flex-shrink:0;padding:10px 12px;font-size:12px;font-weight:600;color:var(--tm);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.nb.active{color:var(--green);border-bottom-color:var(--green);background:var(--gp);}
+.nb span{font-size:13px;margin-right:3px;}
+
+/* PAGES */
+.page{display:none;padding:13px;max-width:600px;margin:0 auto;}
+.page.active{display:block;}
+
+/* CARD */
+.card{background:var(--white);border-radius:var(--r);padding:15px;margin-bottom:13px;box-shadow:var(--sh);border:1px solid var(--bdr);}
+.card-title{font-size:14px;font-weight:700;color:var(--green);margin-bottom:11px;display:flex;align-items:center;gap:5px;}
+
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.fg label{font-size:12px;font-weight:600;color:var(--tm);}
+.fg input,.fg select,.fg textarea{border:1.5px solid var(--bdr);border-radius:var(--rs);padding:9px 11px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);width:100%;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--green);background:#fff;}
+.fg textarea{resize:vertical;min-height:65px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.fr3{grid-template-columns:1fr 1fr 1fr;}
+
+/* BUTTONS */
+.btn{padding:10px 18px;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-g{background:var(--green);color:#fff;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-out{background:transparent;border:1.5px solid var(--green);color:var(--green);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-full{width:100%;}
+.btn-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+
+/* BADGE */
+.bdg{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.bdg-g{background:var(--gp);color:var(--green);}
+.bdg-gold{background:var(--gol);color:var(--gold);}
+.bdg-red{background:var(--rdp);color:var(--red);}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px;}
+.scard{background:var(--white);border-radius:var(--r);padding:13px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr);}
+.scard.g{border-left:4px solid var(--green);}
+.scard.gold{border-left:4px solid var(--gold);}
+.scard.blue{border-left:4px solid var(--blue);}
+.scard.red{border-left:4px solid var(--red);}
+.snum{font-size:24px;font-weight:700;color:var(--green);}
+.slbl{font-size:11px;color:var(--tl);margin-top:2px;}
+
+/* LIST */
+.li{background:var(--white);border-radius:var(--rs);padding:12px;margin-bottom:8px;box-shadow:var(--sh);border:1px solid var(--bdr);transition:all .15s;}
+.li:hover{border-color:var(--green);}
+.li-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.li-title{font-weight:600;font-size:14px;}
+.li-sub{font-size:12px;color:var(--tl);margin-top:2px;}
+.li-meta{font-size:11px;color:var(--tm);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap;}
+
+/* SEARCH */
+.srch{position:relative;margin-bottom:12px;}
+.srch input{padding:10px 14px 10px 35px;border-radius:30px;border:1.5px solid var(--bdr);width:100%;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--white);}
+.srch input:focus{outline:none;border-color:var(--green);}
+.srch-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;}
+
+/* RX */
+.rx-hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--green);padding-bottom:8px;margin-bottom:10px;}
+.rx-sym{font-size:26px;color:var(--green);font-weight:900;font-family:'Playfair Display',serif;}
+.med-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:5px;align-items:center;margin-bottom:6px;}
+.med-row input{border:1.5px solid var(--bdr);border-radius:6px;padding:7px 8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%;}
+.del-btn{background:var(--rdp);color:var(--red);border:none;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:15px;}
+
+/* INV */
+.inv-row{display:grid;grid-template-columns:2fr auto auto auto auto;gap:8px;align-items:center;background:var(--white);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;margin-bottom:6px;}
+.inv-name{font-weight:600;font-size:13px;}
+.inv-sub{font-size:11px;color:var(--tm);}
+.stk{padding:3px 8px;border-radius:12px;font-size:12px;font-weight:700;}
+.stk-ok{background:var(--gp);color:var(--green);}
+.stk-lo{background:#fff3cd;color:#856404;}
+.stk-out{background:var(--rdp);color:var(--red);}
+
+/* SALE ITEMS */
+.si-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:5px;align-items:center;margin-bottom:6px;}
+.si-row input,.si-row select{border:1.5px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%;}
+.si-hdr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:5px;margin-bottom:4px;}
+.si-hdr span{font-size:11px;font-weight:600;color:var(--tm);}
+
+/* FEES */
+.fee-tag{display:inline-flex;align-items:center;gap:5px;background:var(--gp);border:1px solid var(--bdr);border-radius:18px;padding:5px 11px;margin:3px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;}
+.fee-tag:hover,.fee-tag.sel{background:var(--green);color:#fff;border-color:var(--green);}
+
+/* ALERT */
+.alert{padding:10px 14px;border-radius:var(--rs);font-size:13px;margin-bottom:11px;}
+.alert-ok{background:var(--gp);color:var(--green);border-left:3px solid var(--green);}
+.alert-err{background:var(--rdp);color:var(--red);border-left:3px solid var(--red);}
+
+/* SECTION HDR */
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sh h3{font-size:14px;font-weight:700;}
+
+/* QA GRID */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px;}
+.qa{background:var(--white);border:1.5px solid var(--bdr);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;transition:all .2s;}
+.qa:hover{border-color:var(--green);background:var(--gp);}
+.qa .icon{font-size:26px;margin-bottom:4px;}
+.qa .lbl{font-size:12px;font-weight:600;}
+
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+.mo.open{display:flex;}
+.mo-box{background:var(--white);border-radius:var(--r);padding:20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);}
+.mo-title{font-size:16px;font-weight:700;color:var(--green);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.mo-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--tl);}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 20px;color:var(--tl);}
+.empty .icon{font-size:36px;margin-bottom:7px;}
+.empty p{font-size:13px;}
+
+/* PRINT */
+.print-slip{font-family:'DM Sans',sans-serif;padding:14px;max-width:340px;margin:0 auto;}
+.ps-clinic{font-family:'Playfair Display',serif;font-size:20px;color:var(--green);text-align:center;}
+.ps-info{font-size:11px;text-align:center;color:var(--tm);margin-bottom:6px;}
+.ps-div{border-top:1px dashed #aaa;margin:7px 0;}
+.ps-table{width:100%;border-collapse:collapse;font-size:12px;}
+.ps-table th{border-bottom:1px solid #ccc;padding:4px 5px;text-align:left;font-size:11px;}
+.ps-table td{padding:4px 5px;}
+
+/* PASSWORD CHANGE SECTION */
+.pw-section{background:var(--gp);border-radius:var(--rs);padding:14px;margin-bottom:13px;border:1px solid var(--bdr);}
+.pw-section h4{font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px;}
+
+@media(max-width:380px){
+  .fr{grid-template-columns:1fr;}
+  .med-row{grid-template-columns:1fr 1fr;}
+  .si-row{grid-template-columns:1fr 1fr auto;}
+  .inv-row{grid-template-columns:1fr auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="ldr off" id="ldr">
+  <div class="spin"></div>
+  <div style="font-size:14px;opacity:.9" id="ldrTxt">Loading...</div>
+</div>
+
+<!-- ===================== SETUP SCREEN ===================== -->
+<div class="setup" id="setup">
+  <div class="setup-box">
+    <div class="setup-logo"><div class="icon">🌿</div><h2>Arogya Clinic Manager</h2><p style="font-size:12px;color:var(--tl);margin-top:4px">Google Sheets Backend Setup</p></div>
+    <div class="setup-steps">
+      <b>Pehli baar setup (Sahi tarika):</b><br>
+      1. <b>sheets.google.com</b> → New Sheet <b>"Arogya Clinic DB"</b><br>
+      2. Extensions → <b>Apps Script</b> → Code.gs paste karo<br>
+      3. Pehle <b>setupSheets</b> function run karo<br>
+      4. Deploy → New Deployment → <b>Web App</b><br>
+      5. Execute as: <b>Me</b> | Access: <b>Anyone</b><br>
+      6. URL copy karo → neeche paste karo
+    </div>
+    <div class="fg"><label>Apps Script Web App URL *</label><input type="url" id="setupUrl" placeholder="https://script.google.com/macros/s/...../exec"></div>
+    <div class="fg"><label>Doctor Ka Naam</label><input id="setupDoc" placeholder="Dr. Parmod Kumar" value="Dr. Parmod Kumar"></div>
+    <div class="fg"><label>Clinic Ka Naam</label><input id="setupClinic" placeholder="Arogya Ayurvedic Clinic" value="Arogya Ayurvedic Clinic"></div>
+    <div style="font-size:12px;color:var(--red);margin-bottom:8px;display:none" id="setupErr"></div>
+    <button class="btn btn-g btn-full" onclick="connectSetup()">🔗 Connect & Start</button>
+  </div>
+</div>
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div class="login-screen" id="loginScreen">
+  <!-- Floating particles bg effect -->
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);top:-50px;right:-60px"></div>
+    <div style="position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.04);bottom:40px;left:-40px"></div>
+  </div>
+
+  <div style="text-align:center;color:#fff;margin-bottom:20px">
+    <div style="font-size:50px">🌿</div>
+    <div style="font-family:'Playfair Display',serif;font-size:22px;margin-top:8px" id="loginClinicName">Arogya Clinic</div>
+    <div style="font-size:12px;opacity:.75;margin-top:4px">Clinic Management System</div>
+  </div>
+
+  <div class="login-box">
+    <div class="login-logo">
+      <div style="font-size:13px;font-weight:600;color:var(--tm);margin-bottom:12px">Role Select Karein:</div>
+    </div>
+
+    <!-- Role Tabs -->
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-reception" onclick="switchLoginTab('reception')">
+        <span class="tab-icon">🏥</span>Reception
+      </button>
+      <button class="role-tab" id="tab-dispensary" onclick="switchLoginTab('dispensary')">
+        <span class="tab-icon">💊</span>Dispensary
+      </button>
+      <button class="role-tab" id="tab-admin" onclick="switchLoginTab('admin')">
+        <span class="tab-icon">👨‍⚕️</span>Admin
+      </button>
+    </div>
+
+    <div class="login-err" id="loginErr"></div>
+
+    <div class="fg">
+      <label id="loginRoleLabel">Reception Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="loginPassword" placeholder="Password dalein..." onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pw-eye" onclick="togglePw('loginPassword',this)">👁️</button>
+      </div>
+    </div>
+
+    <button class="btn btn-g btn-full" onclick="doLogin()" style="margin-top:4px">🔓 Login</button>
+
+    <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--tl)">
+      Default passwords: Reception=<b>rec123</b> | Dispensary=<b>dis123</b> | Admin=<b>admin123</b><br>
+      <span style="color:var(--red)">⚠️ Admin se login karke password zaroor change karein</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app" style="display:none">
+  <div class="hdr">
+    <div class="hdr-inner">
+      <div class="logo-icon">🌿</div>
+      <div style="flex:1;min-width:0">
+        <h1 id="appTitle">Arogya Clinic</h1>
+        <div class="hdr-sub" id="appSubtitle"></div>
+      </div>
+      <span class="role-chip" id="roleBadge"></span>
+      <button class="hdr-btn" onclick="syncAll()"><span class="sync-dot" id="syncDot"></span><span id="syncTxt">Sync</span></button>
+      <button class="hdr-btn" onclick="goLogin()" title="Logout / Change Role">🔄 Logout</button>
+    </div>
+  </div>
+  <div class="nav" id="mainNav"></div>
+
+  <!-- ---- RECEPTION PAGES ---- -->
+  <div class="page" id="pg-rec-dashboard">
+    <div id="alertBox"></div>
+    <div class="stats-grid">
+      <div class="scard g"><div class="snum" id="rST">0</div><div class="slbl">Aaj ke OPD</div></div>
+      <div class="scard gold"><div class="snum" id="rSF">₹0</div><div class="slbl">Aaj ki Fees</div></div>
+      <div class="scard blue"><div class="snum" id="rSM">0</div><div class="slbl">Is Mahine OPD</div></div>
+      <div class="scard red"><div class="snum" id="rSMF">₹0</div><div class="slbl">Month Fees</div></div>
+    </div>
+    <div class="qa-grid">
+      <div class="qa" onclick="showPage('rec-opd')"><div class="icon">📋</div><div class="lbl">Naya OPD</div></div>
+      <div class="qa" onclick="showPage('rec-fees')"><div class="icon">💰</div><div class="lbl">Procedure Fees</div></div>
+    </div>
+    <div class="card"><div class="card-title">📅 Aaj ke Patients</div><div id="rTodayList"><div class="empty"><div class="icon">🏥</div><p>Koi patient nahi</p></div></div></div>
+  </div>
+
+  <div class="page" id="pg-rec-opd">
+    <div class="card">
+      <div class="card-title">📋 OPD Registration</div>
+      <div class="fr">
+        <div class="fg"><label>Patient ID</label><input id="rOpdId" readonly style="background:#eee"></div>
+        <div class="fg"><label>Date *</label><input type="date" id="rOpdDate"></div>
+      </div>
+      <div class="fg"><label>Patient Ka Naam *</label><input id="rOpdName" placeholder="Ramesh Kumar"></div>
+      <div class="fr">
+        <div class="fg"><label>Aayu *</label><input type="number" id="rOpdAge" placeholder="35"></div>
+        <div class="fg"><label>Ling</label><select id="rOpdGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+      </div>
+      <div class="fg"><label>Mobile</label><input type="tel" id="rOpdMobile" placeholder="9876543210" maxlength="10"></div>
+      <div class="fg"><label>Pata</label><input id="rOpdAddress" placeholder="Gaon, Tehsil, Jila"></div>
+      <div class="fg"><label>Bimari / Chief Complaint *</label><input id="rOpdComplaint" placeholder="Arsha, Fissure, Fistula..."></div>
+      <div class="fr">
+        <div class="fg"><label>Visit Type</label><select id="rOpdVisit"><option value="New">New</option><option value="Follow-up">Follow-up</option><option value="Procedure">Procedure</option></select></div>
+        <div class="fg"><label>OPD Fees (₹) *</label><input type="number" id="rOpdFees"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Payment Mode</label><select id="rOpdPay"><option>Cash</option><option>UPI</option><option>Card</option><option>Free</option></select></div>
+        <div class="fg"><label>Referral Doctor</label><select id="rOpdRef"><option value="">-- Koi Nahi --</option></select></div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="rOpdNotes" placeholder="Koi khas baat..."></textarea></div>
+      <div class="btn-row">
+        <button class="btn btn-g" onclick="saveOPD()">✅ Register & Save</button>
+        <button class="btn btn-out" onclick="clearOPDForm()">🔄 Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="pg-rec-fees">
+    <div class="card">
+      <div class="card-title">💰 Procedure / Extra Fees</div>
+      <div class="fr">
+        <div class="fg"><label>Fee ID</label><input id="feeId" readonly style="background:#eee"></div>
+        <div class="fg"><label>Date</label><input type="date" id="feeDate"></div>
+      </div>
+      <div class="fg"><label>Patient</label><select id="feePt" onchange="fillFeePt()"><option value="">-- Select --</option></select></div>
+      <div class="fg"><label>Patient Naam</label><input id="feePtName" placeholder="Ya seedha naam likhein"></div>
+      <div class="fg"><label>Procedure / Fees Ka Naam *</label><input id="feeName" placeholder="Ksharasutra, Agni Karma..."></div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--tm);margin-bottom:6px">Common Procedures:</div>
+        <span class="fee-tag" onclick="setFee('Ksharasutra',500)">Ksharasutra ₹500</span>
+        <span class="fee-tag" onclick="setFee('Kshara Karma',300)">Kshara Karma ₹300</span>
+        <span class="fee-tag" onclick="setFee('Agni Karma',400)">Agni Karma ₹400</span>
+        <span class="fee-tag" onclick="setFee('Dressing',100)">Dressing ₹100</span>
+        <span class="fee-tag" onclick="setFee('Follow-up',100)">Follow-up ₹100</span>
+        <span class="fee-tag" onclick="setFee('Panchakarma',1000)">Panchakarma ₹1000</span>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Amount (₹) *</label><input type="number" id="feeAmt"></div>
+        <div class="fg"><label>Payment</label><select id="feePay"><option>Cash</option><option>UPI</option><option>Card</option></select></div>
+      </div>
+      <div class="fg"><label>Notes</label><input id="feeNotes" placeholder="Koi khas baat..."></div>
+      <div class="btn-row">
+        <button class="btn btn-g" onclick="saveFee()">✅ Save</button>
+        <button class="btn btn-out btn-sm" onclick="clearFeeForm()">🔄 Clear</button>
+      </div>
+    </div>
+    <div class="sh"><h3>Today's Fees Records</h3><span class="bdg bdg-g" id="feesCount">0</span></div>
+    <div id="feesList"><div class="empty"><div class="icon">💰</div><p>Koi fees nahi</p></div></div>
+  </div>
+
+  <div class="page" id="pg-rec-patients">
+    <div class="srch"><span class="srch-icon">🔍</span><input placeholder="Naam ya mobile..." oninput="renderPatients()" id="ptSearch"></div>
+    <div class="sh"><h3>All Patients</h3><span class="bdg bdg-g" id="ptCount">0</span></div>
+    <div id="ptList"></div>
+  </div>
+
+  <!-- ---- DISPENSARY PAGES ---- -->
+  <div class="page" id="pg-dis-dashboard">
+    <div id="alertBox2"></div>
+    <div class="stats-grid">
+      <div class="scard g"><div class="snum" id="dST">0</div><div class="slbl">Aaj Sales</div></div>
+      <div class="scard gold"><div class="snum" id="dSA">₹0</div><div class="slbl">Aaj Amount</div></div>
+      <div class="scard blue"><div class="snum" id="dSP">0</div><div class="slbl">Pending Rx</div></div>
+      <div class="scard red"><div class="snum" id="dSL">0</div><div class="slbl">Low Stock</div></div>
+    </div>
+    <div class="qa-grid">
+      <div class="qa" onclick="showPage('dis-sale')"><div class="icon">🧾</div><div class="lbl">Nai Sale/Bill</div></div>
+      <div class="qa" onclick="showPage('dis-inventory')"><div class="icon">📦</div><div class="lbl">Inventory</div></div>
+    </div>
+    <div class="card"><div class="card-title">🔔 Pending Prescriptions</div><div id="dPendRx"><div class="empty"><div class="icon">✅</div><p>Koi pending nahi</p></div></div></div>
+  </div>
+
+  <div class="page" id="pg-dis-sale">
+    <div class="card">
+      <div class="card-title">🧾 Nai Dispensary Sale</div>
+      <div style="background:var(--gp);border-radius:var(--rs);padding:11px;margin-bottom:11px;border:1px dashed var(--green)">
+        <div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:7px">💊 Prescription se Auto-fill:</div>
+        <div class="fg"><select id="saleRxSel" onchange="loadFromRx()"><option value="">-- Prescription Select (Optional) --</option></select></div>
+        <div id="rxInfo" style="font-size:12px;color:var(--green);display:none"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Bill No.</label><input id="saleBillNo" readonly style="background:#eee"></div>
+        <div class="fg"><label>Date</label><input type="date" id="saleDate"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Patient</label><select id="salePt" onchange="fillSalePt()"><option value="">-- Select --</option><option value="walkin">Walk-in</option></select></div>
+        <div class="fg"><label>Mobile</label><input type="tel" id="saleMob" placeholder="9876543210"></div>
+      </div>
+      <div class="si-hdr"><span>Item/Dawa</span><span>Qty</span><span>Rate ₹</span><span>Amt</span><span></span></div>
+      <div id="siRows"></div>
+      <button class="btn btn-out btn-sm" onclick="addSI()" style="margin-bottom:10px">+ Item</button>
+      <div style="border-top:1.5px solid var(--bdr);padding-top:10px">
+        <div class="fr">
+          <div class="fg"><label>Discount (₹)</label><input type="number" id="saleDisc" value="0" oninput="calcSaleTotal()"></div>
+          <div class="fg"><label>Payment</label><select id="salePay"><option>Cash</option><option>UPI</option><option>Card</option><option>Credit</option></select></div>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:var(--green);text-align:right">Total: ₹<span id="saleTotal">0</span> | Net: ₹<span id="saleNet">0</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-g" onclick="saveSale()">💾 Save & Update Stock</button>
+        <button class="btn btn-gold" onclick="printSaleNow()">🖨️ Print</button>
+        <button class="btn btn-out" onclick="clearSaleForm()">🔄 Clear</button>
+      </div>
+    </div>
+    <div class="sh"><h3>Sales History</h3><span class="bdg bdg-gold" id="salesCount">0</span></div>
+    <div id="salesList"></div>
+  </div>
+
+  <div class="page" id="pg-dis-inventory">
+    <div class="card">
+      <div class="card-title">📦 Medicine Add/Edit</div>
+      <input type="hidden" id="medId">
+      <div class="fr">
+        <div class="fg"><label>Naam *</label><input id="medName" placeholder="Arshkuthar Ras..."></div>
+        <div class="fg"><label>Category</label><select id="medCat"><option>Tablet</option><option>Syrup</option><option>Churna</option><option>Ras</option><option>Tailam</option><option>Vati</option><option>Asava</option><option>Other</option></select></div>
+      </div>
+      <div class="fr fr3">
+        <div class="fg"><label>Unit</label><select id="medUnit"><option>Tab</option><option>ml</option><option>gm</option><option>Bottle</option><option>Packet</option><option>Strip</option></select></div>
+        <div class="fg"><label>MRP (₹)</label><input type="number" id="medMrp" placeholder="50"></div>
+        <div class="fg"><label>Stock *</label><input type="number" id="medStock" placeholder="100"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Min Alert</label><input type="number" id="medMin" placeholder="10"></div>
+        <div class="fg"><label>Company</label><input id="medCo" placeholder="Baidyanath..."></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-g" onclick="saveMed()">✅ Save Medicine</button>
+        <button class="btn btn-out btn-sm" onclick="clearMedForm()">🔄 Clear</button>
+      </div>
+    </div>
+    <div class="srch"><span class="srch-icon">🔍</span><input placeholder="Medicine dhundhein..." oninput="renderInv()" id="invSrch"></div>
+    <div class="sh"><h3>Inventory</h3><span class="bdg bdg-gold" id="invCount">0</span></div>
+    <div id="invList"></div>
+  </div>
+
+  <!-- ---- ADMIN PAGES ---- -->
+  <div class="page" id="pg-admin-dashboard">
+    <div id="alertBox3"></div>
+    <div class="stats-grid">
+      <div class="scard g"><div class="snum" id="aST">0</div><div class="slbl">Aaj OPD</div></div>
+      <div class="scard gold"><div class="snum" id="aSA">₹0</div><div class="slbl">Aaj Sales</div></div>
+      <div class="scard blue"><div class="snum" id="aSTP">0</div><div class="slbl">Total Patients</div></div>
+      <div class="scard red"><div class="snum" id="aSMT">₹0</div><div class="slbl">Month Total</div></div>
+    </div>
+    <div class="qa-grid">
+      <div class="qa" onclick="showPage('admin-rx')"><div class="icon">💊</div><div class="lbl">Nuskha</div></div>
+      <div class="qa" onclick="showPage('admin-patients')"><div class="icon">👥</div><div class="lbl">All Patients</div></div>
+      <div class="qa" onclick="showPage('admin-ref')"><div class="icon">📞</div><div class="lbl">Referral</div></div>
+      <div class="qa" onclick="showPage('admin-settings')"><div class="icon">⚙️</div><div class="lbl">Settings</div></div>
+    </div>
+    <div class="card"><div class="card-title">📅 Aaj ke Patients</div><div id="aTodayList"></div></div>
+  </div>
+
+  <div class="page" id="pg-admin-rx">
+    <div class="card">
+      <div class="card-title">💊 Nuskha (Prescription)</div>
+      <div class="fr">
+        <div class="fg"><label>Patient</label><select id="rxPt" onchange="fillRxPt()"><option value="">-- Select --</option></select></div>
+        <div class="fg"><label>Date</label><input type="date" id="rxDate"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Naam</label><input id="rxName" placeholder="Naam"></div>
+        <div class="fg"><label>Age/Gender</label><input id="rxAG" placeholder="35 / M"></div>
+      </div>
+      <div class="fg"><label>Diagnosis</label><input id="rxDiag" placeholder="Arsha Gr.2, Pittaj..."></div>
+      <div class="fr">
+        <div class="fg"><input id="rxBP" placeholder="BP: 120/80"></div>
+        <div class="fg"><input id="rxPulse" placeholder="Pulse: 72"></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="rx-hdr"><span class="rx-sym">Rx</span><button class="btn btn-out btn-sm" onclick="addMedRow()">+ Dawa</button></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:5px;margin-bottom:4px">
+          <span style="font-size:11px;font-weight:600;color:var(--tm)">Dawa</span><span style="font-size:11px;font-weight:600;color:var(--tm)">Dose</span><span style="font-size:11px;font-weight:600;color:var(--tm)">Duration</span><span></span>
+        </div>
+        <div id="medRows"></div>
+      </div>
+      <div class="fg" style="margin-top:10px"><label>Advice / Parhej</label><textarea id="rxAdvice" placeholder="Pathya: Purana chawal, Ghee...&#10;Apathya: Teekha, Urad dal..."></textarea></div>
+      <div class="fg"><label>Follow-up</label><input id="rxFollowup" placeholder="7 din baad..."></div>
+      <div style="background:var(--gp);border-radius:var(--rs);padding:9px;margin-bottom:10px;font-size:12px;color:var(--green)">
+        ℹ️ Save hone ke baad Dispensary dashboard mein <b>automatically dikhai degi</b>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-g" onclick="saveRx()">💾 Save to Sheet</button>
+        <button class="btn btn-gold" onclick="printRxNow()">🖨️ Print</button>
+        <button class="btn btn-out" onclick="clearRxForm()">🔄 Clear</button>
+      </div>
+    </div>
+    <div class="sh" style="margin-top:4px"><h3>Saved Prescriptions</h3></div>
+    <div id="rxList"></div>
+  </div>
+
+  <div class="page" id="pg-admin-patients">
+    <div class="srch"><span class="srch-icon">🔍</span><input placeholder="Naam ya mobile..." oninput="renderAdminPt()" id="aptSrch"></div>
+    <div class="sh"><h3>All Patients</h3><span class="bdg bdg-g" id="aptCount">0</span></div>
+    <div id="aptList"></div>
+  </div>
+
+  <div class="page" id="pg-admin-ref">
+    <div class="card">
+      <div class="card-title">📞 Referral Doctor</div>
+      <div class="fg"><label>Naam *</label><input id="refName" placeholder="Dr. Sharma"></div>
+      <div class="fr">
+        <div class="fg"><label>Speciality</label><input id="refSpec" placeholder="Surgeon..."></div>
+        <div class="fg"><label>Mobile *</label><input type="tel" id="refMob" placeholder="9876543210"></div>
+      </div>
+      <div class="fg"><label>Hospital</label><input id="refHosp" placeholder="Hospital naam"></div>
+      <div class="fg"><label>Pata</label><input id="refAddr" placeholder="City, District"></div>
+      <button class="btn btn-g btn-full" onclick="saveRef()">✅ Save</button>
+    </div>
+    <div class="sh"><h3>Referral Doctors</h3><span class="bdg bdg-g" id="refCount">0</span></div>
+    <div id="refList"></div>
+  </div>
+
+  <div class="page" id="pg-admin-settings">
+    <div class="card">
+      <div class="card-title">🏥 Clinic Settings</div>
+      <div class="fg"><label>Doctor Ka Naam</label><input id="sDr"></div>
+      <div class="fg"><label>Qualification</label><input id="sQual" placeholder="BAMS, MD (Ayu)"></div>
+      <div class="fg"><label>Clinic Ka Naam</label><input id="sClin"></div>
+      <div class="fg"><label>Pata</label><textarea id="sAddr"></textarea></div>
+      <div class="fr">
+        <div class="fg"><label>Mobile</label><input id="sMob"></div>
+        <div class="fg"><label>Reg. No.</label><input id="sReg"></div>
+      </div>
+      <div class="fg"><label>Default OPD Fees (₹)</label><input type="number" id="sOpdFees"></div>
+      <button class="btn btn-g btn-full" onclick="saveSettings()">💾 Save</button>
+    </div>
+
+    <!-- PASSWORD CHANGE -->
+    <div class="pw-section">
+      <h4>🔑 Role Passwords Change Karein</h4>
+      <div class="fr">
+        <div class="fg"><label>Reception Password</label>
+          <div class="pw-wrap"><input type="password" id="pwRec" placeholder="New password"><button class="pw-eye" onclick="togglePw('pwRec',this)">👁️</button></div>
+        </div>
+        <div class="fg"><label>Dispensary Password</label>
+          <div class="pw-wrap"><input type="password" id="pwDis" placeholder="New password"><button class="pw-eye" onclick="togglePw('pwDis',this)">👁️</button></div>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Admin Password</label>
+          <div class="pw-wrap"><input type="password" id="pwAdmin" placeholder="New password"><button class="pw-eye" onclick="togglePw('pwAdmin',this)">👁️</button></div>
+        </div>
+        <div class="fg"><label>Current Admin Password *</label>
+          <div class="pw-wrap"><input type="password" id="pwCurrent" placeholder="Verify karein"><button class="pw-eye" onclick="togglePw('pwCurrent',this)">👁️</button></div>
+        </div>
+      </div>
+      <button class="btn btn-g btn-sm" onclick="changePasswords()">🔑 Passwords Update Karein</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔗 Connection</div>
+      <div style="font-size:11px;word-break:break-all;background:var(--bg);padding:8px;border-radius:6px;color:var(--tl)" id="displayUrl"></div>
+      <div class="btn-row"><button class="btn btn-out btn-sm" onclick="changeUrl()">🔄 URL Change</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Modal -->
+<div class="mo" id="ptMo">
+  <div class="mo-box">
+    <div class="mo-title"><span>👤 Patient Details</span><button class="mo-close" onclick="closeMo('ptMo')">✕</button></div>
+    <div id="ptMoContent"></div>
+    <div class="btn-row">
+      <button class="btn btn-g btn-sm" onclick="rxForPt()">💊 Nuskha</button>
+      <button class="btn btn-out btn-sm" onclick="delPt()">🗑️ Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print Modal -->
+<div class="mo" id="printMo">
+  <div class="mo-box">
+    <div class="mo-title"><span>🖨️ Print Preview</span><button class="mo-close" onclick="closeMo('printMo')">✕</button></div>
+    <div id="printContent" style="border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:12px"></div>
+    <div class="btn-row">
+      <button class="btn btn-g" onclick="doPrint()">🖨️ Print / PDF</button>
+      <button class="btn btn-out" onclick="closeMo('printMo')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DEFAULT PASSWORDS (stored in localStorage, changeable)
+// ============================================================
+const DEFAULT_PASSWORDS = { reception:'rec123', dispensary:'dis123', admin:'admin123' };
+
+function getPW(role){
+  return localStorage.getItem('pw_'+role) || DEFAULT_PASSWORDS[role];
+}
+function setPW(role,pw){
+  if(pw) localStorage.setItem('pw_'+role, pw);
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let URL_='', ROLE='', curPtId=null;
+let DB={patients:[],prescriptions:[],medicines:[],sales:[],fees:[],referrals:[],settings:{},counters:{opdCounter:1,saleCounter:1,feeCounter:1}};
+let medRowCount=0, siCount=0, isSyncing=false;
+let loginRole='reception';
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  URL_=localStorage.getItem('clinicUrl')||'';
+  document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+  if(!URL_){
+    show('setup'); hide('loginScreen'); hide('app');
+  } else {
+    hide('setup'); showLoginScreen();
+  }
+}
+
+function show(id){document.getElementById(id).style.display='';}
+function hide(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function showEl(id){const el=document.getElementById(id);if(el)el.classList.remove('off');}
+function hideEl(id){const el=document.getElementById(id);if(el)el.classList.add('off');}
+
+// ============================================================
+// SETUP
+// ============================================================
+async function connectSetup(){
+  const url=document.getElementById('setupUrl').value.trim();
+  const err=document.getElementById('setupErr');
+  if(!url.includes('script.google.com')){err.textContent='❌ Sahi URL paste karein';err.style.display='block';return;}
+  showLdr('Connect ho raha hai...');
+  try{
+    const res=await apiGet('getAll',url);
+    if(res&&res.ok!==false){
+      localStorage.setItem('clinicUrl',url); URL_=url;
+      if(!res.settings?.docName){
+        await apiPost('saveSettings',{docName:document.getElementById('setupDoc').value||'Dr. Parmod Kumar',qual:'BAMS, MD (Ayu)',clinicName:document.getElementById('setupClinic').value||'Arogya Ayurvedic Clinic',address:'Bijnor, Uttar Pradesh',mobile:'',reg:'',defaultFees:200},url);
+      }
+      hideLdr(); hide('setup'); showLoginScreen();
+    } else throw new Error(res?.error||'Failed');
+  }catch(e){hideLdr();document.getElementById('setupErr').textContent='❌ '+e.message;document.getElementById('setupErr').style.display='block';}
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+function showLoginScreen(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('setup').classList.add('off');
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginErr').style.display='none';
+  // Show clinic name
+  const s=DB.settings;
+  if(s.clinicName) document.getElementById('loginClinicName').textContent=s.clinicName;
+  else {
+    // Try to load settings quickly
+    apiGet('getAll').then(res=>{if(res?.ok&&res.settings?.clinicName)document.getElementById('loginClinicName').textContent=res.settings.clinicName;}).catch(()=>{});
+  }
+  setTimeout(()=>document.getElementById('loginPassword').focus(),200);
+}
+
+function switchLoginTab(role){
+  loginRole=role;
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+role).classList.add('active');
+  const labels={reception:'Reception Password',dispensary:'Dispensary Password',admin:'Admin Password'};
+  document.getElementById('loginRoleLabel').textContent=labels[role];
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginErr').style.display='none';
+  document.getElementById('loginPassword').focus();
+}
+
+function doLogin(){
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginErr');
+  if(!pw){err.textContent='Password dalein!';err.style.display='block';return;}
+  if(pw!==getPW(loginRole)){
+    err.textContent='❌ Galat password! Dobara try karein.';
+    err.style.display='block';
+    document.getElementById('loginPassword').value='';
+    document.getElementById('loginPassword').focus();
+    // Shake animation
+    const box=document.querySelector('.login-box');
+    box.style.animation='none'; setTimeout(()=>{box.style.animation='shake .4s ease';},10);
+    return;
+  }
+  err.style.display='none';
+  ROLE=loginRole;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.body.className='role-'+ROLE;
+  setupNav(ROLE);
+  syncAll();
+}
+
+function goLogin(){
+  ROLE='';
+  document.getElementById('app').style.display='none';
+  showLoginScreen();
+}
+
+function togglePw(inputId,btn){
+  const inp=document.getElementById(inputId);
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁️';}
+}
+
+// Shake keyframe
+const styleEl=document.createElement('style');
+styleEl.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
+document.head.appendChild(styleEl);
+
+// ============================================================
+// PASSWORD CHANGE
+// ============================================================
+function changePasswords(){
+  const curPw=document.getElementById('pwCurrent').value;
+  if(curPw!==getPW('admin')){
+    showAlert('❌ Current admin password galat hai!',true); return;
+  }
+  const newRec=document.getElementById('pwRec').value;
+  const newDis=document.getElementById('pwDis').value;
+  const newAdmin=document.getElementById('pwAdmin').value;
+  if(newRec) setPW('reception',newRec);
+  if(newDis) setPW('dispensary',newDis);
+  if(newAdmin) setPW('admin',newAdmin);
+  ['pwRec','pwDis','pwAdmin','pwCurrent'].forEach(id=>document.getElementById(id).value='');
+  showAlert('✅ Passwords update ho gaye!');
+}
+
+// ============================================================
+// NAV
+// ============================================================
+const NAV={
+  reception:[{id:'rec-dashboard',icon:'🏠',lbl:'Dashboard'},{id:'rec-opd',icon:'📋',lbl:'OPD'},{id:'rec-fees',icon:'💰',lbl:'Fees'},{id:'rec-patients',icon:'👥',lbl:'Patients'}],
+  dispensary:[{id:'dis-dashboard',icon:'🏠',lbl:'Dashboard'},{id:'dis-sale',icon:'🧾',lbl:'Sale/Bill'},{id:'dis-inventory',icon:'📦',lbl:'Inventory'}],
+  admin:[{id:'admin-dashboard',icon:'🏠',lbl:'Dashboard'},{id:'admin-rx',icon:'💊',lbl:'Nuskha'},{id:'admin-patients',icon:'👥',lbl:'Patients'},{id:'admin-ref',icon:'📞',lbl:'Referral'},{id:'admin-settings',icon:'⚙️',lbl:'Settings'}]
+};
+const RLBL={reception:'Reception 🏥',dispensary:'Dispensary 💊',admin:'Doctor/Admin 👨‍⚕️'};
+
+function setupNav(role){
+  document.getElementById('mainNav').innerHTML=NAV[role].map(n=>`<button class="nb" onclick="showPage('${n.id}')"><span>${n.icon}</span>${n.lbl}</button>`).join('');
+  document.getElementById('roleBadge').textContent=RLBL[role]||role;
+  const s=DB.settings;
+  document.getElementById('appTitle').textContent=s.clinicName||'Arogya Clinic';
+  document.getElementById('appSubtitle').textContent=(s.docName||'')+' | '+(RLBL[role]||'');
+  showPage(NAV[role][0].id);
+}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  const pg=document.getElementById('pg-'+name);
+  if(pg)pg.classList.add('active');
+  document.querySelectorAll('.nb').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+name+"'"))b.classList.add('active');});
+  setTodayDates();
+  if(name==='rec-dashboard')renderRecDash();
+  if(name==='rec-opd'){nextOpdId();populateRefDrop();applyDefFees();}
+  if(name==='rec-fees'){renderFees();nextFeeId();populatePtDrop();}
+  if(name==='rec-patients')renderPatients();
+  if(name==='dis-dashboard')renderDisDash();
+  if(name==='dis-sale'){renderRxDrop();populatePtDrop();nextSaleNo();clearSaleForm();}
+  if(name==='dis-inventory')renderInv();
+  if(name==='admin-dashboard')renderAdminDash();
+  if(name==='admin-rx'){populatePtDrop();renderRxList();if(!document.getElementById('medRows').children.length)addMedRow();}
+  if(name==='admin-patients')renderAdminPt();
+  if(name==='admin-ref')renderRef();
+  if(name==='admin-settings')loadSettings();
+}
+
+// ============================================================
+// API
+// ============================================================
+async function apiGet(action,url){
+  const u=new URL(url||URL_); u.searchParams.set('action',action);
+  const r=await fetch(u.toString(),{method:'GET',redirect:'follow'});
+  return r.json();
+}
+async function apiPost(action,data,url){
+  const r=await fetch(url||URL_,{method:'POST',redirect:'follow',body:JSON.stringify({action,data}),headers:{'Content-Type':'text/plain'}});
+  return r.json();
+}
+
+// ============================================================
+// SYNC
+// ============================================================
+async function syncAll(){
+  if(isSyncing)return;
+  isSyncing=true; setSyncSt('sync'); showLdr('Google Sheets se sync...');
+  try{
+    const res=await apiGet('getAll');
+    if(!res||res.ok===false)throw new Error(res?.error||'Sync failed');
+    applyDB(res); setSyncSt('ok');
+    const active=document.querySelector('.page.active');
+    if(active){const pg=active.id.replace('pg-','');showPage(pg);}
+    else if(ROLE)showPage(NAV[ROLE][0].id);
+  }catch(e){setSyncSt('err');showAlert('❌ Sync nahi hua: '+e.message,true);}
+  finally{isSyncing=false;hideLdr();}
+}
+
+function applyDB(res){
+  DB.patients=res.patients||[];
+  DB.fees=res.fees||[];
+  DB.referrals=res.referrals||[];
+  DB.settings=res.settings||{};
+  DB.counters=res.counters||{opdCounter:1,saleCounter:1,feeCounter:1};
+  DB.medicines=(res.medicines||[]).map(m=>({...m,stock:Number(m.stock)||0,mrp:Number(m.mrp)||0,minStock:Number(m.minStock)||5}));
+  DB.prescriptions=(res.prescriptions||[]).map(rx=>{
+    if(rx.medicinesJson){try{rx.medicines=JSON.parse(rx.medicinesJson);}catch(e){rx.medicines=[];}delete rx.medicinesJson;}
+    if(!Array.isArray(rx.medicines))rx.medicines=[];
+    return rx;
+  });
+  DB.sales=(res.sales||[]).map(s=>{
+    if(typeof s.items==='string'){try{s.items=JSON.parse(s.items);}catch(e){s.items=[];}}
+    if(!Array.isArray(s.items))s.items=[];
+    s.total=Number(s.total)||0;s.net=Number(s.net)||0;
+    return s;
+  });
+  const s=DB.settings;
+  const el=document.getElementById('appTitle');
+  if(el)el.textContent=s.clinicName||'Arogya Clinic';
+  const sub=document.getElementById('appSubtitle');
+  if(sub)sub.textContent=(s.docName||'')+' | '+(RLBL[ROLE]||'');
+  const lc=document.getElementById('loginClinicName');
+  if(lc)lc.textContent=s.clinicName||'Arogya Clinic';
+}
+
+function setSyncSt(st){
+  const dot=document.getElementById('syncDot'),txt=document.getElementById('syncTxt');
+  if(!dot)return;
+  if(st==='sync'){dot.style.background='#fbbf24';txt.textContent='Syncing...';}
+  else if(st==='ok'){dot.style.background='#4ade80';txt.textContent='Synced';}
+  else{dot.style.background='#f87171';txt.textContent='Offline';}
+}
+
+// ============================================================
+// RECEPTION
+// ============================================================
+function nextOpdId(){const el=document.getElementById('rOpdId');if(el)el.value='PT-'+String(DB.counters.opdCounter||1).padStart(4,'0');}
+function applyDefFees(){const el=document.getElementById('rOpdFees');if(el&&!el.value)el.value=DB.settings.defaultFees||200;}
+function populateRefDrop(){
+  const sel=document.getElementById('rOpdRef');if(!sel)return;
+  const cur=sel.value;sel.innerHTML='<option value="">-- Koi Nahi --</option>';
+  DB.referrals.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name+(r.spec?' ('+r.spec+')':'');sel.appendChild(o);});
+  sel.value=cur;
+}
+function populatePtDrop(){
+  ['feePt','salePt','rxPt'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const cur=sel.value;const isRx=id==='rxPt';
+    sel.innerHTML=`<option value="">-- Select --</option>`+(!isRx?'<option value="walkin">Walk-in</option>':'');
+    DB.patients.slice().reverse().forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' ('+p.id+')';sel.appendChild(o);});
+    sel.value=cur;
+  });
+}
+
+async function saveOPD(){
+  const name=document.getElementById('rOpdName').value.trim();
+  const age=document.getElementById('rOpdAge').value;
+  const complaint=document.getElementById('rOpdComplaint').value.trim();
+  if(!name){showAlert('Patient naam likhein!',true);return;}
+  if(!age){showAlert('Aayu likhein!',true);return;}
+  if(!complaint){showAlert('Bimari likhein!',true);return;}
+  const refId=document.getElementById('rOpdRef').value;
+  const refDoc=refId?DB.referrals.find(r=>r.id==refId):null;
+  const pt={id:document.getElementById('rOpdId').value,date:document.getElementById('rOpdDate').value,name,age,gender:document.getElementById('rOpdGender').value,mobile:document.getElementById('rOpdMobile').value,address:document.getElementById('rOpdAddress').value,complaint,visitType:document.getElementById('rOpdVisit').value,fees:Number(document.getElementById('rOpdFees').value)||0,payMode:document.getElementById('rOpdPay').value,referralDocId:refId,referralDocName:refDoc?refDoc.name:'',notes:document.getElementById('rOpdNotes').value,createdAt:new Date().toISOString()};
+  showLdr('OPD save ho raha hai...');
+  try{
+    await apiPost('savePatient',pt);
+    DB.counters.opdCounter=(Number(DB.counters.opdCounter)||1)+1;
+    await apiPost('saveCounters',DB.counters);
+    DB.patients.push(pt);
+    showAlert('✅ '+pt.name+' ka OPD register ho gaya! ('+pt.id+')');
+    clearOPDForm();nextOpdId();renderRecDash();populatePtDrop();
+  }catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+
+function clearOPDForm(){
+  ['rOpdName','rOpdAge','rOpdMobile','rOpdAddress','rOpdComplaint','rOpdNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('rOpdFees').value=DB.settings.defaultFees||200;
+  document.getElementById('rOpdGender').value='Male';
+  document.getElementById('rOpdVisit').value='New';
+  document.getElementById('rOpdPay').value='Cash';
+  document.getElementById('rOpdRef').value='';
+}
+
+function renderRecDash(){
+  const today=new Date().toISOString().split('T')[0],mo=today.slice(0,7);
+  const todayPts=DB.patients.filter(p=>p.date===today);
+  const todayFees=DB.fees.filter(f=>f.date===today);
+  const aF=todayPts.reduce((s,p)=>s+(Number(p.fees)||0),0)+todayFees.reduce((s,f)=>s+(Number(f.amount)||0),0);
+  const moF=DB.patients.filter(p=>String(p.date).startsWith(mo)).reduce((s,p)=>s+(Number(p.fees)||0),0)+DB.fees.filter(f=>String(f.date).startsWith(mo)).reduce((s,f)=>s+(Number(f.amount)||0),0);
+  set('rST',todayPts.length);set('rSF','₹'+aF.toLocaleString('en-IN'));
+  set('rSM',DB.patients.filter(p=>String(p.date).startsWith(mo)).length);set('rSMF','₹'+moF.toLocaleString('en-IN'));
+  const el=document.getElementById('rTodayList');
+  el.innerHTML=todayPts.length?todayPts.map(p=>`<div class="li" onclick="openPtMo('${p.id}')"><div class="li-hdr"><div><div class="li-title">${p.name}</div><div class="li-sub">${p.age}y/${p.gender} — ${p.complaint}</div></div><div><span class="bdg bdg-g">${p.visitType}</span><br><span class="bdg bdg-gold">₹${p.fees}</span></div></div><div class="li-meta"><span>🆔 ${p.id}</span><span>📱 ${p.mobile||'N/A'}</span></div></div>`).join(''):'<div class="empty"><div class="icon">🏥</div><p>Aaj koi patient nahi</p></div>';
+}
+
+function renderPatients(){
+  const q=(document.getElementById('ptSearch')?.value||'').toLowerCase();
+  const list=DB.patients.filter(p=>p.name?.toLowerCase().includes(q)||(p.mobile||'').includes(q)||(p.id||'').includes(q)).reverse();
+  set('ptCount',list.length);
+  document.getElementById('ptList').innerHTML=list.length?list.map(p=>`<div class="li" onclick="openPtMo('${p.id}')"><div class="li-hdr"><div><div class="li-title">${p.name}</div><div class="li-sub">${p.age}y/${p.gender} — ${p.complaint}</div></div><span class="bdg bdg-g">${p.visitType||'New'}</span></div><div class="li-meta"><span>🆔 ${p.id}</span><span>📅 ${p.date}</span><span>📱 ${p.mobile||'N/A'}</span><span>₹${p.fees}</span></div></div>`).join(''):'<div class="empty"><div class="icon">👥</div><p>Koi nahi mila</p></div>';
+}
+
+function openPtMo(id){
+  curPtId=id;const p=DB.patients.find(pt=>pt.id===id);if(!p)return;
+  document.getElementById('ptMoContent').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><div><b style="font-size:11px;color:var(--tm)">Naam</b><br>${p.name}</div><div><b style="font-size:11px;color:var(--tm)">ID</b><br><span class="bdg bdg-g">${p.id}</span></div><div><b style="font-size:11px;color:var(--tm)">Age/Gender</b><br>${p.age}y/${p.gender}</div><div><b style="font-size:11px;color:var(--tm)">Mobile</b><br>${p.mobile||'N/A'}</div><div style="grid-column:1/-1"><b style="font-size:11px;color:var(--tm)">Bimari</b><br>${p.complaint}</div><div><b style="font-size:11px;color:var(--tm)">Date</b><br>${p.date}</div><div><b style="font-size:11px;color:var(--tm)">Fees</b><br><b style="color:var(--green)">₹${p.fees}</b> (${p.payMode})</div>${p.referralDocName?`<div style="grid-column:1/-1"><b style="font-size:11px;color:var(--tm)">Referred by</b><br>${p.referralDocName}</div>`:''}</div>`;
+  openMo('ptMo');
+}
+async function delPt(){if(!curPtId||!confirm('Delete karen?'))return;showLdr();try{await apiPost('deletePatient',{id:curPtId});DB.patients=DB.patients.filter(p=>p.id!==curPtId);closeMo('ptMo');renderPatients();renderRecDash();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();};}
+function rxForPt(){closeMo('ptMo');if(ROLE!=='admin'){showAlert('Admin se login karke nuskha likhein',true);return;}showPage('admin-rx');document.getElementById('rxPt').value=curPtId;fillRxPt();}
+
+// FEES
+function nextFeeId(){const el=document.getElementById('feeId');if(el)el.value='FEE-'+String(DB.counters.feeCounter||1).padStart(4,'0');}
+function fillFeePt(){const id=document.getElementById('feePt').value;const p=DB.patients.find(pt=>pt.id===id);if(p)document.getElementById('feePtName').value=p.name;}
+function setFee(n,a){document.getElementById('feeName').value=n;document.getElementById('feeAmt').value=a;}
+
+async function saveFee(){
+  const fn=document.getElementById('feeName').value.trim(),amt=Number(document.getElementById('feeAmt').value);
+  if(!fn){showAlert('Fees naam likhein!',true);return;}
+  if(!amt){showAlert('Amount likhein!',true);return;}
+  const f={id:document.getElementById('feeId').value,date:document.getElementById('feeDate').value,patientId:document.getElementById('feePt').value,patientName:document.getElementById('feePtName').value||'Walk-in',feeName:fn,amount:amt,payMode:document.getElementById('feePay').value,notes:document.getElementById('feeNotes').value,createdAt:new Date().toISOString()};
+  showLdr();try{await apiPost('saveFee',f);DB.counters.feeCounter=(Number(DB.counters.feeCounter)||1)+1;await apiPost('saveCounters',DB.counters);DB.fees.push(f);showAlert('✅ Fees save!');clearFeeForm();renderFees();renderRecDash();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+function clearFeeForm(){['feeName','feeAmt','feeNotes','feePtName'].forEach(id=>document.getElementById(id).value='');document.getElementById('feePt').value='';document.getElementById('feePay').value='Cash';nextFeeId();}
+function renderFees(){
+  set('feesCount',DB.fees.length);
+  const today=new Date().toISOString().split('T')[0];
+  const list=DB.fees.filter(f=>f.date===today).reverse();
+  const el=document.getElementById('feesList');
+  el.innerHTML=list.length?list.map(f=>`<div class="li"><div class="li-hdr"><div><div class="li-title">${f.feeName}</div><div class="li-sub">${f.patientName}</div></div><span class="bdg bdg-gold">₹${Number(f.amount).toLocaleString('en-IN')}</span></div><div class="li-meta"><span>📅 ${f.date}</span><span>💳 ${f.payMode}</span></div></div>`).join(''):'<div class="empty"><div class="icon">💰</div><p>Aaj koi fees nahi</p></div>';
+}
+
+// ============================================================
+// DISPENSARY
+// ============================================================
+function renderDisDash(){
+  const today=new Date().toISOString().split('T')[0];
+  const ts=DB.sales.filter(s=>s.date===today);
+  const ta=ts.reduce((s,b)=>s+(Number(b.net)||0),0);
+  const low=DB.medicines.filter(m=>(Number(m.stock)||0)<=(Number(m.minStock)||5));
+  const dispensed=new Set(DB.sales.filter(s=>s.prescriptionId).map(s=>s.prescriptionId));
+  const pending=DB.prescriptions.filter(rx=>!dispensed.has(rx.id));
+  set('dST',ts.length);set('dSA','₹'+ta.toLocaleString('en-IN'));set('dSP',pending.length);set('dSL',low.length);
+  const el=document.getElementById('dPendRx');
+  el.innerHTML=pending.length?pending.slice().reverse().slice(0,5).map(rx=>`<div class="li" style="cursor:pointer;border:2px dashed var(--green);background:var(--gp)" onclick="dispenseRx('${rx.id}')"><div class="li-hdr"><div><div class="li-title" style="color:var(--green)">👤 ${rx.name}</div><div class="li-sub">📅 ${rx.date} | ${rx.diagnosis||''} | ${rx.medicines.length} dawayein</div></div><span class="bdg bdg-g">Dispense →</span></div><div style="margin-top:5px;font-size:12px;color:var(--tm)">${rx.medicines.slice(0,3).map(m=>m.name).join(', ')}${rx.medicines.length>3?'...':''}</div></div>`).join(''):'<div class="empty"><div class="icon">✅</div><p>Koi pending prescription nahi</p></div>';
+}
+
+function dispenseRx(rxId){showPage('dis-sale');setTimeout(()=>{document.getElementById('saleRxSel').value=rxId;loadFromRx();},150);}
+
+function renderRxDrop(){
+  const sel=document.getElementById('saleRxSel');if(!sel)return;
+  const cur=sel.value;sel.innerHTML='<option value="">-- Prescription Select (Optional) --</option>';
+  DB.prescriptions.slice().reverse().forEach(rx=>{const o=document.createElement('option');o.value=rx.id;o.textContent=rx.name+' | '+rx.date+' ('+rx.medicines.length+' dawa)';sel.appendChild(o);});
+  sel.value=cur;
+}
+
+function loadFromRx(){
+  const rxId=document.getElementById('saleRxSel').value;
+  if(!rxId){document.getElementById('rxInfo').style.display='none';return;}
+  const rx=DB.prescriptions.find(r=>r.id===rxId);if(!rx)return;
+  if(rx.patientId){const ps=document.getElementById('salePt');if(ps){ps.value=rx.patientId;fillSalePt();}}
+  document.getElementById('siRows').innerHTML='';siCount=0;
+  rx.medicines.forEach(med=>{
+    const inv=DB.medicines.find(m=>m.name.toLowerCase().includes(med.name.toLowerCase().split(' ')[0]));
+    addSIData(med.name,1,inv?Number(inv.mrp):0,inv?inv.id:'');
+  });
+  document.getElementById('rxInfo').style.display='block';
+  document.getElementById('rxInfo').textContent='✅ Rx loaded: '+rx.name+' ('+rx.date+') — '+rx.medicines.length+' dawayein';
+  document.getElementById('siRows').dataset.rxId=rxId;
+  calcSaleTotal();
+}
+
+function addSIData(name='',qty=1,rate=0,medId=''){
+  siCount++;
+  const div=document.createElement('div');div.className='si-row';div.id='si'+siCount;
+  const opts='<option value="">Manual Entry</option>'+DB.medicines.map(m=>`<option value="${m.id}"${m.id==medId?' selected':''}>${m.name} (Stk:${m.stock})</option>`).join('');
+  div.innerHTML=`<select onchange="fillFromInv(${siCount})" style="border:1.5px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%">${opts}</select><input type="number" value="${qty}" min="1" oninput="calcSaleTotal()"><input type="number" value="${rate}" oninput="calcSaleTotal()"><input type="number" value="${qty*rate}" readonly style="background:#eee"><button class="del-btn" onclick="document.getElementById('si${siCount}').remove();calcSaleTotal()">✕</button>`;
+  document.getElementById('siRows').appendChild(div);
+}
+function addSI(){addSIData();}
+
+function fillFromInv(n){
+  const row=document.getElementById('si'+n);if(!row)return;
+  const sel=row.querySelector('select');const medId=sel.value;if(!medId)return;
+  const med=DB.medicines.find(m=>m.id==medId);if(!med)return;
+  const inp=row.querySelectorAll('input');inp[0].value=1;inp[1].value=med.mrp||0;calcSaleTotal();
+}
+
+function calcSaleTotal(){
+  let total=0;
+  document.getElementById('siRows').querySelectorAll('.si-row').forEach(r=>{
+    const inp=r.querySelectorAll('input');
+    const a=(Number(inp[0].value)||0)*(Number(inp[1].value)||0);inp[2].value=a;total+=a;
+  });
+  const disc=Number(document.getElementById('saleDisc')?.value)||0;
+  set('saleTotal',total.toLocaleString('en-IN'));set('saleNet',(total-disc).toLocaleString('en-IN'));
+}
+
+function getSI(){
+  const items=[];
+  document.getElementById('siRows').querySelectorAll('.si-row').forEach(r=>{
+    const sel=r.querySelector('select');const inp=r.querySelectorAll('input');
+    const medId=sel?sel.value:'';const med=medId?DB.medicines.find(m=>m.id==medId):null;
+    const name=med?med.name:(sel?.options[sel.selectedIndex]?.text||'');
+    const qty=Number(inp[0].value)||1,rate=Number(inp[1].value)||0;
+    if(name&&name!=='Manual Entry'&&rate>0)items.push({medicineId:medId,name,qty,rate,amt:qty*rate});
+  });
+  return items;
+}
+function fillSalePt(){const id=document.getElementById('salePt').value;const p=DB.patients.find(pt=>pt.id===id);if(p)document.getElementById('saleMob').value=p.mobile||'';}
+function nextSaleNo(){const el=document.getElementById('saleBillNo');if(el)el.value='SALE-'+String(DB.counters.saleCounter||1).padStart(4,'0');}
+
+async function saveSale(){
+  const items=getSI();if(!items.length){showAlert('Ek item likhein!',true);return;}
+  const disc=Number(document.getElementById('saleDisc').value)||0,total=items.reduce((s,i)=>s+i.amt,0);
+  const pid=document.getElementById('salePt').value,p=DB.patients.find(pt=>pt.id===pid);
+  const rxId=document.getElementById('siRows').dataset.rxId||'';
+  const sale={id:document.getElementById('saleBillNo').value,date:document.getElementById('saleDate').value,patientId:pid,patientName:p?p.name:(pid==='walkin'?'Walk-in':'Unknown'),mobile:document.getElementById('saleMob').value,prescriptionId:rxId,items,discount:disc,total,net:total-disc,payMode:document.getElementById('salePay').value,createdAt:new Date().toISOString()};
+  showLdr('Save + stock update...');
+  try{
+    await apiPost('saveSale',sale);
+    DB.counters.saleCounter=(Number(DB.counters.saleCounter)||1)+1;
+    await apiPost('saveCounters',DB.counters);
+    items.forEach(item=>{if(item.medicineId){const m=DB.medicines.find(md=>md.id==item.medicineId);if(m)m.stock=Math.max(0,m.stock-item.qty);}});
+    DB.sales.push({...sale});
+    showAlert('✅ Sale save! Stock auto-update ho gaya.');
+    clearSaleForm();renderSaleList();renderDisDash();
+  }catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+
+function clearSaleForm(){
+  document.getElementById('siRows').innerHTML='';document.getElementById('siRows').dataset.rxId='';siCount=0;
+  document.getElementById('salePt').value='';document.getElementById('saleMob').value='';
+  document.getElementById('saleDisc').value=0;document.getElementById('salePay').value='Cash';
+  document.getElementById('saleRxSel').value='';document.getElementById('rxInfo').style.display='none';
+  set('saleTotal','0');set('saleNet','0');nextSaleNo();
+}
+
+function renderSaleList(){
+  set('salesCount',DB.sales.length);
+  const el=document.getElementById('salesList');if(!el)return;
+  el.innerHTML=DB.sales.length?DB.sales.slice().reverse().map(s=>`<div class="li"><div class="li-hdr"><div><div class="li-title">${s.patientName}</div><div class="li-sub">${s.items?.length||0} items | ${s.payMode}</div></div><span class="bdg bdg-gold">₹${Number(s.net).toLocaleString('en-IN')}</span></div><div class="li-meta"><span>🆔 ${s.id}</span><span>📅 ${s.date}</span>${s.prescriptionId?'<span class="bdg bdg-g" style="font-size:10px">Rx-based</span>':''}</div><div class="btn-row" style="margin-top:5px"><button class="btn btn-sm btn-gold" onclick='printSaleById("${s.id}")'>🖨️</button><button class="btn btn-sm btn-red" onclick='delSale("${s.id}")'>🗑️</button></div></div>`).join(''):'<div class="empty"><div class="icon">🧾</div><p>Koi sale nahi</p></div>';
+}
+async function delSale(id){if(!confirm('Delete?'))return;showLdr();try{await apiPost('deleteSale',{id});DB.sales=DB.sales.filter(s=>s.id!==id);renderSaleList();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();};}
+
+function printSaleNow(){
+  const items=getSI();if(!items.length){showAlert('Items likhein!',true);return;}
+  const disc=Number(document.getElementById('saleDisc').value)||0,total=items.reduce((s,i)=>s+i.amt,0);
+  const pid=document.getElementById('salePt').value,p=DB.patients.find(pt=>pt.id===pid);
+  const b={id:document.getElementById('saleBillNo').value,date:document.getElementById('saleDate').value,patientName:p?p.name:'Walk-in',mobile:document.getElementById('saleMob').value,items,discount:disc,total,net:total-disc,payMode:document.getElementById('salePay').value};
+  document.getElementById('printContent').innerHTML=buildBillHtml(b);openMo('printMo');
+}
+function printSaleById(id){const s=DB.sales.find(b=>b.id===id);if(!s)return;document.getElementById('printContent').innerHTML=buildBillHtml(s);openMo('printMo');}
+
+// INVENTORY
+function clearMedForm(){['medId','medName','medMrp','medStock','medMin','medCo'].forEach(id=>document.getElementById(id).value='');document.getElementById('medCat').value='Tablet';document.getElementById('medUnit').value='Tab';}
+
+async function saveMed(){
+  const name=document.getElementById('medName').value.trim();if(!name){showAlert('Naam likhein!',true);return;}
+  const med={id:document.getElementById('medId').value||('MED-'+Date.now()),name,category:document.getElementById('medCat').value,unit:document.getElementById('medUnit').value,mrp:Number(document.getElementById('medMrp').value)||0,stock:Number(document.getElementById('medStock').value)||0,minStock:Number(document.getElementById('medMin').value)||5,company:document.getElementById('medCo').value,updatedAt:new Date().toISOString()};
+  showLdr('Inventory save...');
+  try{
+    await apiPost('saveMedicine',med);
+    const idx=DB.medicines.findIndex(m=>m.id===med.id);
+    if(idx>=0)DB.medicines[idx]=med;else DB.medicines.push(med);
+    showAlert('✅ Medicine save!');clearMedForm();renderInv();
+  }catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+
+function editMed(id){
+  const m=DB.medicines.find(md=>md.id===id);if(!m)return;
+  document.getElementById('medId').value=m.id;document.getElementById('medName').value=m.name;
+  document.getElementById('medCat').value=m.category||'Tablet';document.getElementById('medUnit').value=m.unit||'Tab';
+  document.getElementById('medMrp').value=m.mrp;document.getElementById('medStock').value=m.stock;
+  document.getElementById('medMin').value=m.minStock;document.getElementById('medCo').value=m.company||'';
+  window.scrollTo(0,0);
+}
+async function delMed(id){if(!confirm('Delete?'))return;showLdr();try{await apiPost('deleteMedicine',{id});DB.medicines=DB.medicines.filter(m=>m.id!==id);renderInv();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();};}
+
+function renderInv(){
+  const q=(document.getElementById('invSrch')?.value||'').toLowerCase();
+  const list=DB.medicines.filter(m=>m.name?.toLowerCase().includes(q)||(m.category||'').toLowerCase().includes(q));
+  set('invCount',list.length);
+  const el=document.getElementById('invList');if(!el)return;
+  el.innerHTML=list.length?list.map(m=>{
+    const st=Number(m.stock)||0,mn=Number(m.minStock)||5;
+    const sc=st===0?'stk-out':st<=mn?'stk-lo':'stk-ok';
+    const sl=st===0?'Out of Stock':st<=mn?'Low Stock':'In Stock';
+    return `<div class="inv-row"><div><div class="inv-name">${m.name}</div><div class="inv-sub">${m.category||''} | ${m.company||''}</div></div><span class="stk ${sc}">${sl}</span><div style="font-size:13px;font-weight:700">${st} ${m.unit||''}</div><div style="font-size:13px;font-weight:700;color:var(--green)">₹${m.mrp}</div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-out" onclick='editMed("${m.id}")' style="padding:5px 8px">✏️</button><button class="btn btn-sm btn-red" onclick='delMed("${m.id}")' style="padding:5px 8px">🗑️</button></div></div>`;
+  }).join(''):'<div class="empty"><div class="icon">📦</div><p>Koi medicine nahi</p></div>';
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function renderAdminDash(){
+  const today=new Date().toISOString().split('T')[0],mo=today.slice(0,7);
+  const todayPts=DB.patients.filter(p=>p.date===today);
+  const todaySales=DB.sales.filter(s=>s.date===today).reduce((s,b)=>s+(Number(b.net)||0),0);
+  const moTotal=DB.patients.filter(p=>String(p.date).startsWith(mo)).reduce((s,p)=>s+(Number(p.fees)||0),0)+DB.fees.filter(f=>String(f.date).startsWith(mo)).reduce((s,f)=>s+(Number(f.amount)||0),0)+DB.sales.filter(s=>String(s.date).startsWith(mo)).reduce((s,b)=>s+(Number(b.net)||0),0);
+  set('aST',todayPts.length);set('aSA','₹'+todaySales.toLocaleString('en-IN'));set('aSTP',DB.patients.length);set('aSMT','₹'+moTotal.toLocaleString('en-IN'));
+  document.getElementById('aTodayList').innerHTML=todayPts.length?todayPts.map(p=>`<div class="li"><div class="li-hdr"><div><div class="li-title">${p.name}</div><div class="li-sub">${p.age}y/${p.gender} — ${p.complaint}</div></div><span class="bdg bdg-g">${p.visitType}</span></div><div class="li-meta"><span>🆔 ${p.id}</span><span>₹${p.fees}</span></div></div>`).join(''):'<div class="empty"><div class="icon">🏥</div><p>Aaj koi patient nahi</p></div>';
+}
+
+function renderAdminPt(){
+  const q=(document.getElementById('aptSrch')?.value||'').toLowerCase();
+  const list=DB.patients.filter(p=>p.name?.toLowerCase().includes(q)||(p.mobile||'').includes(q)).reverse();
+  set('aptCount',list.length);
+  document.getElementById('aptList').innerHTML=list.length?list.map(p=>`<div class="li"><div class="li-hdr"><div><div class="li-title">${p.name}</div><div class="li-sub">${p.age}y/${p.gender} — ${p.complaint}</div></div><span class="bdg bdg-g">${p.visitType||'New'}</span></div><div class="li-meta"><span>🆔 ${p.id}</span><span>📅 ${p.date}</span><span>📱 ${p.mobile||'N/A'}</span></div></div>`).join(''):'<div class="empty"><div class="icon">👥</div><p>Koi nahi</p></div>';
+}
+
+// RX
+function addMedRow(){
+  medRowCount++;const div=document.createElement('div');div.className='med-row';div.id='mr'+medRowCount;
+  div.innerHTML=`<input type="text" placeholder="Dawa naam" style="border:1.5px solid var(--bdr);border-radius:6px;padding:7px 8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%"><input type="text" placeholder="2 tab BD" style="border:1.5px solid var(--bdr);border-radius:6px;padding:7px 8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%"><input type="text" placeholder="7 din" style="border:1.5px solid var(--bdr);border-radius:6px;padding:7px 8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%"><button class="del-btn" onclick="document.getElementById('mr${medRowCount}').remove()">✕</button>`;
+  document.getElementById('medRows').appendChild(div);
+}
+function getMedRows(){const meds=[];document.getElementById('medRows').querySelectorAll('.med-row').forEach(r=>{const i=r.querySelectorAll('input');if(i[0].value.trim())meds.push({name:i[0].value,dose:i[1].value,duration:i[2].value});});return meds;}
+function fillRxPt(){const id=document.getElementById('rxPt')?.value;const p=DB.patients.find(pt=>pt.id===id);if(!p)return;document.getElementById('rxName').value=p.name;document.getElementById('rxAG').value=p.age+' / '+p.gender;document.getElementById('rxDiag').value=p.complaint||'';}
+
+async function saveRx(){
+  const meds=getMedRows(),name=document.getElementById('rxName').value.trim();
+  if(!name){showAlert('Patient naam likhein!',true);return;}if(!meds.length){showAlert('Ek dawa likhein!',true);return;}
+  const rx={id:'RX-'+Date.now(),patientId:document.getElementById('rxPt').value,date:document.getElementById('rxDate').value,name,ageGender:document.getElementById('rxAG').value,diagnosis:document.getElementById('rxDiag').value,bp:document.getElementById('rxBP').value,pulse:document.getElementById('rxPulse').value,medicines:meds,advice:document.getElementById('rxAdvice').value,followup:document.getElementById('rxFollowup').value,dispensed:false,createdAt:new Date().toISOString()};
+  showLdr();try{await apiPost('savePrescription',rx);DB.prescriptions.push({...rx});showAlert('✅ Nuskha save! Dispensary mein dikhai dega.');clearRxForm();renderRxList();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+function clearRxForm(){document.getElementById('rxPt').value='';['rxName','rxAG','rxDiag','rxBP','rxPulse','rxAdvice','rxFollowup'].forEach(id=>document.getElementById(id).value='');document.getElementById('medRows').innerHTML='';addMedRow();}
+function renderRxList(){
+  const el=document.getElementById('rxList');if(!el)return;
+  el.innerHTML=DB.prescriptions.length?DB.prescriptions.slice().reverse().map(rx=>`<div class="li"><div class="li-hdr"><div><div class="li-title">${rx.name}</div><div class="li-sub">${rx.diagnosis||''}</div></div><span class="bdg bdg-g">${rx.medicines?.length||0} dawa</span></div><div class="li-meta"><span>📅 ${rx.date}</span><span>🆔 ${rx.id}</span></div><div class="btn-row" style="margin-top:5px"><button class="btn btn-sm btn-gold" onclick='printRxById("${rx.id}")'>🖨️</button><button class="btn btn-sm btn-red" onclick='delRx("${rx.id}")'>🗑️</button></div></div>`).join(''):'<div class="empty"><div class="icon">📄</div><p>Koi nuskha nahi</p></div>';
+}
+async function delRx(id){if(!confirm('Delete?'))return;showLdr();try{await apiPost('deletePrescription',{id});DB.prescriptions=DB.prescriptions.filter(r=>r.id!==id);renderRxList();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();};}
+function printRxNow(){const meds=getMedRows(),name=document.getElementById('rxName').value.trim();if(!name){showAlert('Naam likhein!',true);return;}const rx={id:'Draft',name,ageGender:document.getElementById('rxAG').value,date:document.getElementById('rxDate').value,diagnosis:document.getElementById('rxDiag').value,bp:document.getElementById('rxBP').value,pulse:document.getElementById('rxPulse').value,medicines:meds,advice:document.getElementById('rxAdvice').value,followup:document.getElementById('rxFollowup').value};document.getElementById('printContent').innerHTML=buildRxHtml(rx);openMo('printMo');}
+function printRxById(id){const rx=DB.prescriptions.find(r=>r.id===id);if(!rx)return;document.getElementById('printContent').innerHTML=buildRxHtml(rx);openMo('printMo');}
+
+// REFERRAL
+async function saveRef(){
+  const name=document.getElementById('refName').value.trim();if(!name){showAlert('Naam likhein!',true);return;}
+  const r={id:'REF-'+Date.now(),name,spec:document.getElementById('refSpec').value,mobile:document.getElementById('refMob').value,hospital:document.getElementById('refHosp').value,address:document.getElementById('refAddr').value};
+  showLdr();try{await apiPost('saveReferral',r);DB.referrals.push(r);showAlert('✅ Saved!');['refName','refSpec','refMob','refHosp','refAddr'].forEach(id=>document.getElementById(id).value='');renderRef();populateRefDrop();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+function renderRef(){
+  set('refCount',DB.referrals.length);const el=document.getElementById('refList');if(!el)return;
+  el.innerHTML=DB.referrals.length?DB.referrals.map(r=>`<div class="li"><div class="li-hdr"><div><div class="li-title">👨‍⚕️ ${r.name}</div><div class="li-sub">${r.spec||''} ${r.hospital?'— '+r.hospital:''}</div></div><a href="tel:${r.mobile}" class="btn btn-sm btn-g" style="text-decoration:none">📞</a></div><div class="li-meta"><span>📱 ${r.mobile}</span><span>📍 ${r.address||''}</span></div><div class="btn-row" style="margin-top:5px"><a href="https://wa.me/91${r.mobile}" target="_blank" class="btn btn-sm btn-out" style="text-decoration:none">WhatsApp</a><button class="btn btn-sm btn-red" onclick='delRef("${r.id}")'>🗑️</button></div></div>`).join(''):'<div class="empty"><div class="icon">👨‍⚕️</div><p>Koi nahi</p></div>';
+}
+async function delRef(id){if(!confirm('Delete?'))return;showLdr();try{await apiPost('deleteReferral',{id});DB.referrals=DB.referrals.filter(r=>r.id!==id);renderRef();}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();};}
+
+// SETTINGS
+function loadSettings(){
+  const s=DB.settings;
+  document.getElementById('sDr').value=s.docName||'';document.getElementById('sQual').value=s.qual||'';
+  document.getElementById('sClin').value=s.clinicName||'';document.getElementById('sAddr').value=s.address||'';
+  document.getElementById('sMob').value=s.mobile||'';document.getElementById('sReg').value=s.reg||'';
+  document.getElementById('sOpdFees').value=s.defaultFees||200;document.getElementById('displayUrl').textContent=URL_;
+}
+async function saveSettings(){
+  DB.settings={docName:document.getElementById('sDr').value,qual:document.getElementById('sQual').value,clinicName:document.getElementById('sClin').value,address:document.getElementById('sAddr').value,mobile:document.getElementById('sMob').value,reg:document.getElementById('sReg').value,defaultFees:Number(document.getElementById('sOpdFees').value)||200};
+  showLdr();try{await apiPost('saveSettings',DB.settings);showAlert('✅ Settings save!');}catch(e){showAlert('❌ '+e.message,true);}finally{hideLdr();}
+}
+function changeUrl(){if(!confirm('URL change karen?'))return;localStorage.removeItem('clinicUrl');location.reload();}
+
+// ============================================================
+// PRINT
+// ============================================================
+function buildRxHtml(rx){
+  const s=DB.settings;
+  return `<div class="print-slip"><div class="ps-clinic">${s.clinicName||'Arogya Clinic'}</div><div class="ps-info">${s.docName||''} | ${s.qual||''}<br>${s.address||''} | ${s.mobile||''} | Reg: ${s.reg||''}</div><div class="ps-div"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;margin-bottom:6px"><div><b>Patient:</b> ${rx.name}</div><div><b>Date:</b> ${rx.date}</div><div><b>Age/Sex:</b> ${rx.ageGender||''}</div><div><b>ID:</b> ${rx.id||''}</div>${rx.bp?`<div><b>BP:</b> ${rx.bp}</div>`:''}${rx.pulse?`<div><b>Pulse:</b> ${rx.pulse}</div>`:''}</div>${rx.diagnosis?`<div style="font-size:12px;margin-bottom:5px"><b>Dx:</b> ${rx.diagnosis}</div>`:''}<div class="ps-div"></div><div style="font-size:24px;font-weight:900;color:#1a6b3c;font-family:'Playfair Display',serif;margin-bottom:6px">Rx</div><table class="ps-table"><tr><th>#</th><th>Dawa</th><th>Dose</th><th>Duration</th></tr>${(rx.medicines||[]).map((m,i)=>`<tr><td>${i+1}</td><td>${m.name}</td><td>${m.dose}</td><td>${m.duration}</td></tr>`).join('')}</table>${rx.advice?`<div class="ps-div"></div><div style="font-size:12px"><b>Advice:</b> ${rx.advice.replace(/\n/g,'<br>')}</div>`:''}<div style="text-align:right;margin-top:20px;font-size:12px"><div style="border-top:1px solid #999;display:inline-block;padding-top:4px;width:120px"><b>${s.docName||''}</b><br>${s.qual||''}</div></div></div>`;
+}
+function buildBillHtml(b){
+  const s=DB.settings;
+  return `<div class="print-slip"><div class="ps-clinic">${s.clinicName||'Arogya Clinic'}</div><div class="ps-info">${s.docName||''} | ${s.address||''}<br>📱 ${s.mobile||''}</div><div class="ps-div"></div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><div><b>Bill:</b> ${b.id}</div><div><b>Date:</b> ${b.date}</div></div><div style="font-size:12px;margin-bottom:6px"><b>Patient:</b> ${b.patientName||''} ${b.mobile?'| '+b.mobile:''}</div><div class="ps-div"></div><table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="border-bottom:1px solid #ccc"><th style="text-align:left;padding:3px">#</th><th style="text-align:left;padding:3px">Item</th><th style="text-align:center;padding:3px">Qty</th><th style="text-align:right;padding:3px">Rate</th><th style="text-align:right;padding:3px">Amt</th></tr>${(b.items||[]).map((i,n)=>`<tr><td style="padding:3px">${n+1}</td><td style="padding:3px">${i.name}</td><td style="text-align:center;padding:3px">${i.qty}</td><td style="text-align:right;padding:3px">₹${i.rate}</td><td style="text-align:right;padding:3px">₹${i.amt}</td></tr>`).join('')}</table><div class="ps-div"></div><div style="font-size:12px;text-align:right"><div>Total: ₹${Number(b.total).toLocaleString('en-IN')}</div>${b.discount?`<div>Discount: -₹${b.discount}</div>`:''}<div style="font-size:15px;font-weight:700;color:#1a6b3c;margin-top:3px">Net: ₹${Number(b.net).toLocaleString('en-IN')}</div><div style="font-size:11px">${b.payMode}</div></div><div style="text-align:center;font-size:11px;margin-top:10px;color:#7a9980">— Dhanyawad —</div></div>`;
+}
+function doPrint(){
+  const content=document.getElementById('printContent').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"><style>body{font-family:'DM Sans',sans-serif;padding:14px;max-width:340px;margin:0 auto}.ps-clinic{font-family:'Playfair Display',serif;font-size:20px;color:#1a6b3c;text-align:center}.ps-info{font-size:11px;text-align:center;color:#4a6350;margin-bottom:6px}.ps-div{border-top:1px dashed #aaa;margin:7px 0}.ps-table{width:100%;border-collapse:collapse;font-size:12px}.ps-table th{border-bottom:1px solid #ccc;padding:4px;text-align:left;font-size:11px}.ps-table td{padding:4px}</style></head><body>${content}</body></html>`);
+  w.document.close();setTimeout(()=>w.print(),500);
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showLdr(t=''){document.getElementById('ldrTxt').textContent=t||'Please wait...';document.getElementById('ldr').classList.remove('off');}
+function hideLdr(){document.getElementById('ldr').classList.add('off');}
+function openMo(id){document.getElementById(id).classList.add('open');}
+function closeMo(id){document.getElementById(id).classList.remove('open');}
+function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function setTodayDates(){const t=new Date().toISOString().split('T')[0];['rOpdDate','feeDate','rxDate','saleDate'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=t;});}
+function showAlert(msg,isErr=false){
+  ['alertBox','alertBox2','alertBox3'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=`<div class="alert ${isErr?'alert-err':'alert-ok'}">${msg}</div>`;});
+  setTimeout(()=>['alertBox','alertBox2','alertBox3'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';}),4000);
+}
+
+init();
+</script>
+</body>
+</html>
